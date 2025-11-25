@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Sourcing Paper – Tools Screening Applicant</title>
+
+  <!-- Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- SheetJS untuk export Excel -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <style>
+    :root{
+      --bg:#f6f8fb;
+      --card:#ffffff;
+      --ink:#0f172a;
+      --muted:#6b7280;
+      --brand:#2563eb;
+      --brand-soft:#e0edff;
+      --danger:#dc2626;
+      --line:#e5e7eb;
+      --radius:14px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:'Montserrat',system-ui,-apple-system,Segoe UI,sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+      line-height:1.5;
+      padding:16px;
+    }
+    h1{
+      font-size:1.6rem;
+      font-weight:700;
+      margin-bottom:4px;
+    }
+    .subhead{
+      font-size:.9rem;
+      color:var(--muted);
+    }
+    .shell{
+      max-width:1400px;
+      margin:0 auto;
+    }
+    .layout{
+      display:grid;
+      grid-template-columns:minmax(0,420px) minmax(0,1fr);
+      gap:16px;
+      margin-top:16px;
+    }
+    @media(max-width:960px){
+      .layout{
+        grid-template-columns:minmax(0,1fr);
+      }
+    }
+    .card{
+      background:var(--card);
+      border-radius:var(--radius);
+      box-shadow:0 10px 30px rgba(15,23,42,.06);
+      padding:16px 18px;
+      border:1px solid #e5e7eb;
+    }
+    .card-title{
+      font-weight:600;
+      font-size:1rem;
+      margin-bottom:4px;
+    }
+    .card-sub{
+      font-size:.8rem;
+      color:var(--muted);
+      margin-bottom:12px;
+    }
+    form{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      max-height:calc(100vh - 160px);
+      overflow:auto;
+      padding-right:4px;
+    }
+    .field-group{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:8px 12px;
+    }
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      font-size:.8rem;
+    }
+    .field label{
+      font-weight:600;
+      font-size:.78rem;
+    }
+    .field small{
+      font-size:.7rem;
+      color:var(--muted);
+    }
+    input,select,textarea{
+      font:inherit;
+      padding:6px 8px;
+      border-radius:9px;
+      border:1px solid var(--line);
+      background:#f9fafb;
+      outline:none;
+      transition:.15s border-color,.15s box-shadow,.15s background;
+    }
+    input:focus,select:focus,textarea:focus{
+      border-color:var(--brand);
+      box-shadow:0 0 0 1px rgba(37,99,235,.25);
+      background:#fff;
+    }
+    input[disabled]{
+      background:#f3f4f6;
+      color:#9ca3af;
+    }
+    textarea{
+      resize:vertical;
+      min-height:60px;
+    }
+    .actions-line{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-top:4px;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .btn{
+      border:none;
+      border-radius:999px;
+      padding:7px 16px;
+      font-size:.8rem;
+      font-weight:600;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      transition:.15s transform,.15s box-shadow,.15s background;
+      white-space:nowrap;
+    }
+    .btn-primary{
+      background:var(--brand);
+      color:#fff;
+      box-shadow:0 8px 18px rgba(37,99,235,.25);
+    }
+    .btn-primary:hover{
+      transform:translateY(-1px);
+      box-shadow:0 12px 24px rgba(37,99,235,.28);
+    }
+    .btn-ghost{
+      background:transparent;
+      color:var(--muted);
+    }
+    .btn-ghost:hover{
+      background:#f3f4f6;
+    }
+    .badge-mode{
+      font-size:.72rem;
+      padding:4px 9px;
+      border-radius:999px;
+      background:var(--brand-soft);
+      color:var(--brand);
+      font-weight:600;
+    }
+
+    /* FILTERS & EXPORT */
+    .filters{
+      margin-top:4px;
+      margin-bottom:8px;
+    }
+    .filters-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:flex-end;
+    }
+    .filter-field{
+      display:flex;
+      flex-direction:column;
+      font-size:.75rem;
+    }
+    .filter-field label,
+    .export-group label{
+      font-weight:600;
+      margin-bottom:3px;
+    }
+    .filters select{
+      min-width:150px;
+      padding:5px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:#f9fafb;
+      font-size:.78rem;
+    }
+    .filters select:focus{
+      border-color:var(--brand);
+      box-shadow:0 0 0 1px rgba(37,99,235,.25);
+      background:#fff;
+    }
+    .export-group{
+      margin-left:auto;
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+    .export-buttons{
+      display:flex;
+      gap:6px;
+      flex-wrap:wrap;
+    }
+
+    /* TABLE */
+    .table-wrap{
+      margin-top:4px;
+      border-radius:var(--radius);
+      border:1px solid var(--line);
+      overflow:auto;
+      background:#fff;
+      max-height:calc(100vh - 160px);
+    }
+    table{
+      border-collapse:collapse;
+      width:100%;
+      min-width:980px;
+      font-size:.78rem;
+    }
+    thead{
+      position:sticky;
+      top:0;
+      z-index:2;
+      background:#0f172a;
+      color:#e5e7eb;
+    }
+    th,td{
+      padding:6px 8px;
+      border-bottom:1px solid #e5e7eb;
+      text-align:left;
+      vertical-align:top;
+    }
+    th{
+      font-weight:600;
+      font-size:.72rem;
+      white-space:nowrap;
+    }
+    tbody tr:nth-child(even){
+      background:#f9fafb;
+    }
+    tbody tr:hover{
+      background:#eef2ff;
+    }
+    .mini-actions{
+      display:flex;
+      gap:6px;
+      flex-wrap:wrap;
+    }
+    .btn-mini{
+      padding:3px 8px;
+      border-radius:999px;
+      border:none;
+      font-size:.7rem;
+      cursor:pointer;
+      background:#e5e7eb;
+    }
+    .btn-mini-edit{background:#dbeafe;color:#1d4ed8;}
+    .btn-mini-del{background:#fee2e2;color:#b91c1c;}
+    a.wa-link{
+      color:#16a34a;
+      font-weight:600;
+      text-decoration:none;
+      font-size:.75rem;
+    }
+    a.wa-link:hover{
+      text-decoration:underline;
+    }
+    .hint{
+      font-size:.7rem;
+      color:var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <h1>Sourcing Paper</h1>
+      <div class="subhead">
+        Worksheet screening kandidat dalam bentuk web app (CRUD) berdasarkan BRD <strong>Tools Screening Applicant</strong>.
+      </div>
+    </header>
+
+    <div class="layout">
+      <!-- FORM -->
+      <section class="card">
+        <div class="card-title">Form Sourcing Paper</div>
+        <div class="card-sub">Tambah / edit data kandidat. Data tersimpan di browser (localStorage) di perangkat ini.</div>
+
+        <div class="actions-line" style="margin-bottom:8px;">
+          <span class="badge-mode" id="mode-label">Mode: Tambah baru</span>
+          <div class="hint">
+            TANGGAL &amp; ALIAS terisi otomatis saat simpan / saat mengetik NAMA.
+          </div>
+        </div>
+
+        <form id="sourcing-form">
+          <!-- Block 1 -->
+          <div class="field-group">
+            <div class="field">
+              <label for="tanggal">TANGGAL</label>
+              <input id="tanggal" type="text" placeholder="Otomatis saat simpan" disabled />
+              <small>Timestamp input done</small>
+            </div>
+            <div class="field">
+              <label for="username">USERNAME</label>
+              <input id="username" type="text" />
+            </div>
+            <div class="field">
+              <label for="password">PASSWORD</label>
+              <input id="password" type="password" />
+            </div>
+            <div class="field">
+              <label for="area">AREA</label>
+              <select id="area">
+                <option value="">-- Pilih Area --</option>
+                <option>JABODETABEK</option>
+                <option>Bandung</option>
+                <option>Semarang</option>
+                <option>Surabaya</option>
+                <option>Medan</option>
+                <option>Makassar</option>
+                <option>Lainnya</option>
+              </select>
+              <small>Contoh, bisa kamu edit sesuai kebutuhan.</small>
+            </div>
+          </div>
+
+          <!-- Block 2 -->
+          <div class="field-group">
+            <div class="field">
+              <label for="linkCv">LINK CV</label>
+              <input id="linkCv" type="text" placeholder="URL CV (GDrive / lainnya)" />
+            </div>
+            <div class="field">
+              <label for="uploadOrs">Upload ORS</label>
+              <select id="uploadOrs">
+                <option value="">-- Pilih --</option>
+                <option>Sudah</option>
+                <option>Belum</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="name">NAME</label>
+              <input id="name" type="text" />
+            </div>
+            <div class="field">
+              <label for="alias">ALIAS</label>
+              <input id="alias" type="text" placeholder="Otomatis dari nama depan" />
+              <small>Diambil otomatis dari nama depan.</small>
+            </div>
+          </div>
+
+          <!-- Block 3 -->
+          <div class="field-group">
+            <div class="field">
+              <label for="email">EMAIL</label>
+              <input id="email" type="email" />
+            </div>
+            <div class="field">
+              <label for="kotaLahir">KOTA LAHIR</label>
+              <input id="kotaLahir" type="text" />
+            </div>
+            <div class="field">
+              <label for="tahunLahir">TAHUN LAHIR (Tgl Lahir)</label>
+              <input id="tahunLahir" type="date" />
+              <small>Format tanggal.</small>
+            </div>
+            <div class="field">
+              <label for="gender">GENDER</label>
+              <select id="gender">
+                <option value="">-- Pilih --</option>
+                <option>Laki-Laki</option>
+                <option>Perempuan</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Block 4 -->
+          <div class="field-group">
+            <div class="field">
+              <label for="religion">RELIGION</label>
+              <select id="religion">
+                <option value="">-- Pilih --</option>
+                <option>Islam</option>
+                <option>Kristen</option>
+                <option>Katolik</option>
+                <option>Hindu</option>
+                <option>Budha</option>
+                <option>Konghucu</option>
+                <option>Lainnya</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="kotaDomisili">Kota Domisili</label>
+              <input id="kotaDomisili" type="text" />
+            </div>
+            <div class="field">
+              <label for="pendidikan">PENDIDIKAN</label>
+              <select id="pendidikan">
+                <option value="">-- Pilih --</option>
+                <option>SMA/SMK</option>
+                <option>D1</option>
+                <option>D2</option>
+                <option>D3</option>
+                <option>S1</option>
+                <option>S2</option>
+                <option>S3</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="sekolahUniv">SEKOLAH / UNIV</label>
+              <input id="sekolahUniv" type="text" />
+            </div>
+          </div>
+
+          <!-- Block 5 -->
+          <div class="field-group">
+            <div class="field">
+              <label for="sumberSourcing">SUMBER SOURCING</label>
+              <select id="sumberSourcing">
+                <option value="">-- Pilih --</option>
+                <option>SIM Talent Search</option>
+                <option>Referensi Teman/Keluarga</option>
+                <option>Jobstreet</option>
+                <option>LinkedIn</option>
+                <option>Kalibrr</option>
+                <option>Karir.com</option>
+                <option>Ex TAD</option>
+                <option>Gawe.id</option>
+                <option>Whatsapp</option>
+                <option>Drop CV</option>
+                <option>Forum Lowongan Kerja</option>
+                <option>FLK</option>
+                <option>Lainnya</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="industry">INDUSTRY</label>
+              <select id="industry">
+                <option value="">-- Pilih --</option>
+                <option>Multifinance Fintech - LO</option>
+                <option>Multifinance Fintech - Non LO</option>
+                <option>Banking</option>
+                <option>Retail</option>
+                <option>FMCG</option>
+                <option>Manufacture</option>
+                <option>Logistic</option>
+                <option>General Industry</option>
+                <option>Contact Center</option>
+                <option>Talent Pool Elektronik</option>
+                <option>Lainnya</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="jobPosisi">JOB POSISI</label>
+              <input id="jobPosisi" type="text" />
+            </div>
+            <div class="field">
+              <label for="provinsiMinat">PROVINSI MINAT</label>
+              <select id="provinsiMinat">
+                <option value="">Memuat dari provinsi_kota.json...</option>
+              </select>
+              <small>Dropdown dinamis dari sheet Master (via file JSON).</small>
+            </div>
+          </div>
+
+          <!-- Block 6 -->
+          <div class="field-group">
+            <div class="field">
+              <label for="kotaMinat">KOTA MINAT PENEMPATAN</label>
+              <select id="kotaMinat">
+                <option value="">Pilih provinsi terlebih dahulu</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="groupAplikan">GROUP APLIKAN</label>
+              <select id="groupAplikan">
+                <option value="">-- Pilih --</option>
+                <option>Aplikan Valid Submit</option>
+                <option>Aplikan Valid Stock</option>
+                <option>Aplikan Valid FIFGROUP</option>
+                <option>Lainnya</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="phone1">PHONE 1</label>
+              <input id="phone1" type="tel" placeholder="Contoh: 0812xxxx" />
+              <small>Dipakai untuk link WhatsApp.</small>
+            </div>
+            <div class="field">
+              <label for="phone2">PHONE 2 / LINK ZOOM</label>
+              <input id="phone2" type="text" />
+            </div>
+          </div>
+
+          <!-- Block 7 -->
+          <div class="field-group">
+            <div class="field">
+              <label for="parameter">PARAMETER</label>
+              <select id="parameter">
+                <option value="">-- Pilih --</option>
+                <option>CTC 1</option>
+                <option>CTC 2</option>
+                <option>BPH 1</option>
+                <option>BPH 2</option>
+                <option>UTC 1</option>
+                <option>UTC 2</option>
+                <option>MSG</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="expectedSalary">EXPECTED SALARY</label>
+              <input id="expectedSalary" type="number" min="0" step="100000" placeholder="contoh: 6000000" />
+            </div>
+            <div class="field">
+              <label for="statusApplicant">STATUS APPLICANT</label>
+              <select id="statusApplicant">
+                <option value="">-- Pilih --</option>
+                <option>Submit</option>
+                <option>Tidak Submit</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="reasonTidakSubmit">REASON TIDAK SUBMIT</label>
+              <select id="reasonTidakSubmit">
+                <option value="">-- Pilih Reason --</option>
+                <option>Terhubung - One Month Notice</option>
+                <option>Terhubung - Withdrawn</option>
+                <option>Terhubung - Location Issue</option>
+                <option>Terhubung - Salary Issue</option>
+                <option>Terhubung - Not Available (sudah bekerja)</option>
+                <option>Terhubung - Not Fit (kualifikasi tidak sesuai)</option>
+                <option>Terhubung - Berkas Kurang Lengkap</option>
+                <option>Lainnya</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="actions-line">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button type="submit" class="btn btn-primary" id="submit-btn">Simpan Data</button>
+              <button type="button" class="btn btn-ghost" id="reset-btn">Bersihkan Form</button>
+            </div>
+            <button type="button" class="btn btn-ghost" id="clear-storage-btn">
+              Hapus Semua Data (local)
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- TABEL + FILTER -->
+      <section class="card">
+        <div class="card-title">Worksheet Data Kandidat</div>
+        <div class="card-sub">
+          Data tampil per baris seperti worksheet. Scroll ke kanan untuk lihat semua kolom.
+        </div>
+        <div class="hint" style="margin-bottom:4px;">
+          Data disimpan di <strong>localStorage</strong> browser. Jika ganti device / clear cache, data ikut hilang.
+        </div>
+
+        <!-- FILTERS & EXPORT -->
+        <div class="filters">
+          <div class="filters-row">
+            <div class="filter-field">
+              <label for="filter-area">Filter AREA</label>
+              <select id="filter-area">
+                <option value="">Semua AREA</option>
+              </select>
+            </div>
+            <div class="filter-field">
+              <label for="filter-industry">Filter INDUSTRY</label>
+              <select id="filter-industry">
+                <option value="">Semua INDUSTRY</option>
+              </select>
+            </div>
+            <div class="filter-field">
+              <label for="filter-status">Filter STATUS APPLICANT</label>
+              <select id="filter-status">
+                <option value="">Semua STATUS</option>
+              </select>
+            </div>
+            <div class="export-group">
+              <label>Export Data</label>
+              <div class="export-buttons">
+                <button type="button" class="btn btn-ghost" id="export-csv-btn">CSV</button>
+                <button type="button" class="btn btn-ghost" id="export-xlsx-btn">Excel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr id="header-row"></tr>
+            </thead>
+            <tbody id="data-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "sourcingPaperRecords_v2";
+
+    // PROVINSI_KOTA akan di-load dari file provinsi_kota.json
+    let PROVINSI_KOTA = {};
+
+    // Field utama yang ada di form
+    const FORM_FIELDS = [
+      "tanggal",
+      "username",
+      "password",
+      "area",
+      "linkCv",
+      "uploadOrs",
+      "name",
+      "alias",
+      "email",
+      "kotaLahir",
+      "tahunLahir",
+      "gender",
+      "religion",
+      "kotaDomisili",
+      "pendidikan",
+      "sekolahUniv",
+      "sumberSourcing",
+      "industry",
+      "jobPosisi",
+      "provinsiMinat",
+      "kotaMinat",
+      "groupAplikan",
+      "phone1",
+      "phone2",
+      "parameter",
+      "expectedSalary",
+      "statusApplicant",
+      "reasonTidakSubmit"
+    ];
+
+    // Kolom tabel (termasuk CALL 1 sebagai kolom virtual WA)
+    const TABLE_FIELDS = [
+      { key: "tanggal",           label: "TANGGAL" },
+      { key: "username",          label: "USERNAME" },
+      { key: "password",          label: "PASSWORD" },
+      { key: "area",              label: "AREA" },
+      { key: "linkCv",            label: "Link CV" },
+      { key: "uploadOrs",         label: "Upload ORS" },
+      { key: "name",              label: "NAME" },
+      { key: "alias",             label: "ALIAS" },
+      { key: "email",             label: "EMAIL" },
+      { key: "kotaLahir",         label: "KOTA LAHIR" },
+      { key: "tahunLahir",        label: "TAHUN LAHIR" },
+      { key: "gender",            label: "GENDER" },
+      { key: "religion",          label: "RELIGION" },
+      { key: "kotaDomisili",      label: "Kota Domisili" },
+      { key: "pendidikan",        label: "PENDIDIKAN" },
+      { key: "sekolahUniv",       label: "SEKOLAH/UNIV" },
+      { key: "sumberSourcing",    label: "SUMBER SOURCING" },
+      { key: "industry",          label: "INDUSTRY" },
+      { key: "jobPosisi",         label: "JOB POSISI" },
+      { key: "provinsiMinat",     label: "PROVINSI MINAT" },
+      { key: "kotaMinat",         label: "KOTA MINAT" },
+      { key: "groupAplikan",      label: "GROUP APLIKAN" },
+      { key: "phone1",            label: "PHONE 1" },
+      { key: "call1",             label: "CALL 1 (WA)" },
+      { key: "phone2",            label: "PHONE 2 / LINK ZOOM" },
+      { key: "parameter",         label: "PARAMETER" },
+      { key: "expectedSalary",    label: "EXPECTED SALARY" },
+      { key: "statusApplicant",   label: "STATUS APPLICANT" },
+      { key: "reasonTidakSubmit", label: "REASON TIDAK SUBMIT" }
+    ];
+
+    let records = [];
+    let editIndex = null;
+
+    // Filter state
+    let filterArea = "";
+    let filterIndustry = "";
+    let filterStatus = "";
+
+    function loadRecords(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        records = raw ? JSON.parse(raw) : [];
+        if(!Array.isArray(records)) records = [];
+      }catch(e){
+        console.error("Gagal load storage:", e);
+        records = [];
+      }
+    }
+    function saveRecords(){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    }
+
+    function initTableHeader(){
+      const tr = document.getElementById("header-row");
+      tr.innerHTML = "";
+      TABLE_FIELDS.forEach(f=>{
+        const th = document.createElement("th");
+        th.textContent = f.label;
+        tr.appendChild(th);
+      });
+      const thAct = document.createElement("th");
+      thAct.textContent = "AKSI";
+      tr.appendChild(thAct);
+    }
+
+    function makeWaNumber(phoneRaw){
+      if(!phoneRaw) return "";
+      let num = phoneRaw.replace(/[^\d]/g,"");
+      if(!num) return "";
+      if(num.startsWith("0")){
+        num = "62" + num.slice(1);
+      }else if(!num.startsWith("62")){
+        // kalau bukan 0 dan bukan 62, biarkan saja (anggap sudah benar)
+      }
+      return num;
+    }
+
+    function makeWaLink(phoneRaw){
+      const waNum = makeWaNumber(phoneRaw);
+      if(!waNum) return "";
+      return "https://wa.me/" + waNum;
+    }
+
+    // ========== FILTER ==========
+    function getFilteredRecords(){
+      return records.filter(r=>{
+        if(filterArea && (r.area || "") !== filterArea) return false;
+        if(filterIndustry && (r.industry || "") !== filterIndustry) return false;
+        if(filterStatus && (r.statusApplicant || "") !== filterStatus) return false;
+        return true;
+      });
+    }
+
+    function updateFilterOptions(){
+      const areaSelect     = document.getElementById("filter-area");
+      const industrySelect = document.getElementById("filter-industry");
+      const statusSelect   = document.getElementById("filter-status");
+
+      const areas = new Set();
+      const industries = new Set();
+      const statuses = new Set();
+
+      records.forEach(r=>{
+        if(r.area)            areas.add(r.area);
+        if(r.industry)        industries.add(r.industry);
+        if(r.statusApplicant) statuses.add(r.statusApplicant);
+      });
+
+      function fillSelect(select, values, currentValue, labelAll){
+        const oldVal = currentValue || "";
+        select.innerHTML = "";
+        const optAll = document.createElement("option");
+        optAll.value = "";
+        optAll.textContent = labelAll;
+        select.appendChild(optAll);
+        Array.from(values).sort().forEach(v=>{
+          const opt = document.createElement("option");
+          opt.value = v;
+          opt.textContent = v;
+          select.appendChild(opt);
+        });
+        select.value = oldVal;
+      }
+
+      fillSelect(areaSelect, areas, filterArea, "Semua AREA");
+      fillSelect(industrySelect, industries, filterIndustry, "Semua INDUSTRY");
+      fillSelect(statusSelect, statuses, filterStatus, "Semua STATUS");
+    }
+
+    function initFilterEvents(){
+      const areaSelect     = document.getElementById("filter-area");
+      const industrySelect = document.getElementById("filter-industry");
+      const statusSelect   = document.getElementById("filter-status");
+
+      const handler = ()=>{
+        filterArea     = areaSelect.value || "";
+        filterIndustry = industrySelect.value || "";
+        filterStatus   = statusSelect.value || "";
+        renderTable();
+      };
+
+      areaSelect.addEventListener("change", handler);
+      industrySelect.addEventListener("change", handler);
+      statusSelect.addEventListener("change", handler);
+    }
+
+    // ========== PROVINSI – KOTA ==========
+    function populateKotaSelect(prov, selectedCity){
+      const kotaSelect = document.getElementById("kotaMinat");
+      kotaSelect.innerHTML = '<option value="">-- Pilih Kota --</option>';
+      if(!prov || !PROVINSI_KOTA[prov]) return;
+      PROVINSI_KOTA[prov].forEach(city=>{
+        const opt = document.createElement("option");
+        opt.value = city;
+        opt.textContent = city;
+        kotaSelect.appendChild(opt);
+      });
+      if(selectedCity){
+        kotaSelect.value = selectedCity;
+      }
+    }
+
+    function initProvinsiKotaDropdown(){
+      const provSelect = document.getElementById("provinsiMinat");
+      const kotaSelect = document.getElementById("kotaMinat");
+
+      provSelect.innerHTML = '<option value="">-- Pilih Provinsi --</option>';
+
+      const provs = Object.keys(PROVINSI_KOTA || {}).sort();
+      if(provs.length === 0){
+        // fallback teks jika JSON belum tersedia
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "Data provinsi belum dimuat";
+        provSelect.appendChild(opt);
+        kotaSelect.innerHTML = '<option value="">Pilih provinsi terlebih dahulu</option>';
+        return;
+      }
+
+      provs.forEach(p=>{
+        const opt = document.createElement("option");
+        opt.value = p;
+        opt.textContent = p;
+        provSelect.appendChild(opt);
+      });
+
+      // reset kota
+      kotaSelect.innerHTML = '<option value="">Pilih provinsi terlebih dahulu</option>';
+    }
+
+    function loadProvinsiKotaFromJson(){
+      // File ini harus kamu buat sendiri dari sheet Master: provinsi_kota.json
+      fetch("provinsi_kota.json")
+        .then(res => res.json())
+        .then(data=>{
+          PROVINSI_KOTA = data || {};
+          initProvinsiKotaDropdown();
+        })
+        .catch(err=>{
+          console.warn("Gagal load provinsi_kota.json:", err);
+          PROVINSI_KOTA = {};
+          initProvinsiKotaDropdown();
+        });
+    }
+
+    // ========== TABEL ==========
+    function renderTable(){
+      const tbody = document.getElementById("data-body");
+      tbody.innerHTML = "";
+
+      const dataToRender = getFilteredRecords();
+
+      if(dataToRender.length === 0){
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = TABLE_FIELDS.length + 1;
+        td.textContent = "Belum ada data (atau tidak ada yang cocok dengan filter).";
+        td.style.textAlign = "center";
+        td.style.color = "#6b7280";
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+
+      dataToRender.forEach((rec, idx)=>{
+        const tr = document.createElement("tr");
+        TABLE_FIELDS.forEach(field=>{
+          const td = document.createElement("td");
+          if(field.key === "call1"){
+            const link = rec.call1 || makeWaLink(rec.phone1);
+            if(link){
+              const a = document.createElement("a");
+              a.href = link;
+              a.target = "_blank";
+              a.rel = "noopener noreferrer";
+              a.className = "wa-link";
+              a.textContent = "Chat WA";
+              td.appendChild(a);
+            }else{
+              td.textContent = "-";
+            }
+          }else{
+            let val = rec[field.key] ?? "";
+            if(field.key === "password" && val){
+              val = "••••••";
+            }
+            td.textContent = val;
+          }
+          tr.appendChild(td);
+        });
+
+        const tdAct = document.createElement("td");
+        const wrap = document.createElement("div");
+        wrap.className = "mini-actions";
+
+        const btnEdit = document.createElement("button");
+        btnEdit.type = "button";
+        btnEdit.className = "btn-mini btn-mini-edit";
+        btnEdit.textContent = "Edit";
+        btnEdit.onclick = ()=> startEdit(idx);
+
+        const btnDel = document.createElement("button");
+        btnDel.type = "button";
+        btnDel.className = "btn-mini btn-mini-del";
+        btnDel.textContent = "Hapus";
+        btnDel.onclick = ()=> deleteRecord(idx);
+
+        wrap.appendChild(btnEdit);
+        wrap.appendChild(btnDel);
+        tdAct.appendChild(wrap);
+        tr.appendChild(tdAct);
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    function resetForm(){
+      FORM_FIELDS.forEach(key=>{
+        const el = document.getElementById(key);
+        if(!el) return;
+        if(el.tagName === "SELECT" || el.tagName === "INPUT" || el.tagName === "TEXTAREA"){
+          el.value = "";
+        }
+      });
+      // reset dropdown kota
+      populateKotaSelect("", "");
+      editIndex = null;
+      document.getElementById("mode-label").textContent = "Mode: Tambah baru";
+      document.getElementById("submit-btn").textContent = "Simpan Data";
+    }
+
+    function fillFormFromRecord(rec){
+      FORM_FIELDS.forEach(key=>{
+        const el = document.getElementById(key);
+        if(!el) return;
+        const val = rec[key] ?? "";
+        el.value = val;
+      });
+      // pastikan provinsi-kota terisi dengan benar
+      const prov = rec.provinsiMinat || "";
+      const city = rec.kotaMinat || "";
+      document.getElementById("provinsiMinat").value = prov;
+      populateKotaSelect(prov, city);
+    }
+
+    function collectFormData(isEdit){
+      const data = {};
+      FORM_FIELDS.forEach(key=>{
+        const el = document.getElementById(key);
+        if(!el) return;
+        data[key] = (el.value || "").trim();
+      });
+
+      if(!isEdit || !data.tanggal){
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth()+1).padStart(2,"0");
+        const dd = String(now.getDate()).padStart(2,"0");
+        const hh = String(now.getHours()).padStart(2,"0");
+        const nn = String(now.getMinutes()).padStart(2,"0");
+        data.tanggal = `${yyyy}-${mm}-${dd} ${hh}:${nn}`;
+        const tEl = document.getElementById("tanggal");
+        if(tEl) tEl.value = data.tanggal;
+      }
+
+      data.call1 = makeWaLink(data.phone1);
+      return data;
+    }
+
+    function startEdit(idx){
+      const rec = records[idx];
+      editIndex = idx;
+      fillFormFromRecord(rec);
+      document.getElementById("mode-label").textContent = "Mode: Edit baris #" + (idx+1);
+      document.getElementById("submit-btn").textContent = "Update Data";
+      const formEl = document.getElementById("sourcing-form");
+      if(formEl && formEl.scrollIntoView){
+        formEl.scrollIntoView({behavior:"smooth",block:"start"});
+      }
+    }
+
+    function deleteRecord(idx){
+      if(!confirm("Yakin ingin menghapus baris ini?")) return;
+      records.splice(idx,1);
+      saveRecords();
+      updateFilterOptions();
+      renderTable();
+      resetForm();
+    }
+
+    // ========== EXPORT ==========
+    function exportToCSV(){
+      if(!records.length){
+        alert("Tidak ada data untuk diexport.");
+        return;
+      }
+      const header = TABLE_FIELDS.map(f=>f.label);
+      const rows = records.map(rec => TABLE_FIELDS.map(f=>{
+        if(f.key === "call1") return makeWaLink(rec.phone1);
+        if(f.key === "password") return rec.password || "";
+        return rec[f.key] ?? "";
+      }));
+
+      function escapeCSV(value){
+        if(value == null) return "";
+        const s = String(value).replace(/"/g,'""');
+        if(/[",\n]/.test(s)) return `"${s}"`;
+        return s;
+      }
+
+      const lines = [];
+      lines.push(header.map(escapeCSV).join(","));
+      rows.forEach(row=>{
+        lines.push(row.map(escapeCSV).join(","));
+      });
+
+      const blob = new Blob([lines.join("\n")], {type:"text/csv;charset=utf-8;"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "SourcingPaper.csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function exportToXLSX(){
+      if(!records.length){
+        alert("Tidak ada data untuk diexport.");
+        return;
+      }
+      const header = TABLE_FIELDS.map(f=>f.label);
+      const rows = records.map(rec => TABLE_FIELDS.map(f=>{
+        if(f.key === "call1") return makeWaLink(rec.phone1);
+        if(f.key === "password") return rec.password || "";
+        return rec[f.key] ?? "";
+      }));
+      const aoa = [header, ...rows];
+      const ws = XLSX.utils.aoa_to_sheet(aoa);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "SourcingPaper");
+      XLSX.writeFile(wb, "SourcingPaper.xlsx");
+    }
+
+    // ========== EVENTS ==========
+    function setupEvents(){
+      const form = document.getElementById("sourcing-form");
+      form.addEventListener("submit", function(e){
+        e.preventDefault();
+        const isEdit = editIndex !== null;
+        const data = collectFormData(isEdit);
+
+        if(isEdit){
+          records[editIndex] = {...records[editIndex], ...data};
+        }else{
+          records.push(data);
+        }
+        saveRecords();
+        updateFilterOptions();
+        renderTable();
+        resetForm();
+      });
+
+      document.getElementById("reset-btn").addEventListener("click", function(){
+        resetForm();
+      });
+
+      document.getElementById("clear-storage-btn").addEventListener("click", function(){
+        if(!confirm("Hapus semua data yang tersimpan di browser ini?")) return;
+        records = [];
+        saveRecords();
+        updateFilterOptions();
+        renderTable();
+        resetForm();
+      });
+
+      // Auto-ALIAS dari NAME
+      const nameEl = document.getElementById("name");
+      const aliasEl = document.getElementById("alias");
+      nameEl.addEventListener("input", function(){
+        const txt = (this.value || "").trim();
+        const first = txt.split(/\s+/)[0] || "";
+        aliasEl.value = first ? first.toUpperCase() : "";
+      });
+
+      // Provinsi -> Kota
+      const provEl = document.getElementById("provinsiMinat");
+      provEl.addEventListener("change", function(){
+        populateKotaSelect(this.value, "");
+      });
+
+      // Export buttons
+      document.getElementById("export-csv-btn").addEventListener("click", exportToCSV);
+      document.getElementById("export-xlsx-btn").addEventListener("click", exportToXLSX);
+
+      // Filter events
+      initFilterEvents();
+    }
+
+    // INIT
+    (function init(){
+      initTableHeader();
+      loadRecords();
+      setupEvents();
+      loadProvinsiKotaFromJson(); // load provinsi-kota dari file JSON eksternal
+      updateFilterOptions();
+      renderTable();
+    })();
+  </script>
+</body>
+</html>
