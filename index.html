@@ -190,7 +190,8 @@
       font-weight:600;
       margin-bottom:3px;
     }
-    .filters select{
+    .filters select,
+    .filters input[type="date"]{
       min-width:150px;
       padding:5px 10px;
       border-radius:999px;
@@ -198,7 +199,8 @@
       background:#f9fafb;
       font-size:.78rem;
     }
-    .filters select:focus{
+    .filters select:focus,
+    .filters input[type="date"]:focus{
       border-color:var(--brand);
       box-shadow:0 0 0 1px rgba(37,99,235,.25);
       background:#fff;
@@ -289,7 +291,7 @@
     <header>
       <h1>Sourcing Paper</h1>
       <div class="subhead">
-        Worksheet screening kandidat dalam bentuk web app (CRUD) berdasarkan BRD <strong>Tools Screening Applicant</strong>.
+        Worksheet screening kandidat dalam bentuk web app (CRUD) yang terhubung langsung ke Google Spreadsheet.
       </div>
     </header>
 
@@ -297,12 +299,14 @@
       <!-- FORM -->
       <section class="card">
         <div class="card-title">Form Sourcing Paper</div>
-        <div class="card-sub">Tambah / edit data kandidat. Data tersimpan di browser (localStorage) di perangkat ini.</div>
+        <div class="card-sub">
+          Tambah / edit data kandidat. Data tersimpan di Spreadsheet (bukan di localStorage).
+        </div>
 
         <div class="actions-line" style="margin-bottom:8px;">
           <span class="badge-mode" id="mode-label">Mode: Tambah baru</span>
           <div class="hint">
-            TANGGAL &amp; ALIAS terisi otomatis saat simpan / saat mengetik NAMA.
+            TANGGAL otomatis dari Apps Script saat simpan, ALIAS otomatis dari nama depan.
           </div>
         </div>
 
@@ -311,16 +315,15 @@
           <div class="field-group">
             <div class="field">
               <label for="tanggal">TANGGAL</label>
-              <input id="tanggal" type="text" placeholder="Otomatis saat simpan" disabled />
-              <small>Timestamp input done</small>
+              <input id="tanggal" type="text" placeholder="Otomatis dari server" disabled />
             </div>
             <div class="field">
-              <label for="username">USERNAME</label>
-              <input id="username" type="text" />
+              <label for="namaPs">Nama PS</label>
+              <input id="namaPs" type="text" />
             </div>
             <div class="field">
-              <label for="password">PASSWORD</label>
-              <input id="password" type="password" />
+              <label for="central">Central</label>
+              <input id="central" type="text" />
             </div>
             <div class="field">
               <label for="area">AREA</label>
@@ -334,7 +337,6 @@
                 <option>Makassar</option>
                 <option>Lainnya</option>
               </select>
-              <small>Contoh, bisa kamu edit sesuai kebutuhan.</small>
             </div>
           </div>
 
@@ -359,7 +361,6 @@
             <div class="field">
               <label for="alias">ALIAS</label>
               <input id="alias" type="text" placeholder="Otomatis dari nama depan" />
-              <small>Diambil otomatis dari nama depan.</small>
             </div>
           </div>
 
@@ -376,7 +377,6 @@
             <div class="field">
               <label for="tahunLahir">TAHUN LAHIR (Tgl Lahir)</label>
               <input id="tahunLahir" type="date" />
-              <small>Format tanggal.</small>
             </div>
             <div class="field">
               <label for="gender">GENDER</label>
@@ -473,7 +473,6 @@
               <select id="provinsiMinat">
                 <option value="">Memuat dari provinsi_kota.json...</option>
               </select>
-              <small>Dropdown dinamis dari sheet Master (via file JSON).</small>
             </div>
           </div>
 
@@ -498,7 +497,6 @@
             <div class="field">
               <label for="phone1">PHONE 1</label>
               <input id="phone1" type="tel" placeholder="Contoh: 0812xxxx" />
-              <small>Dipakai untuk link WhatsApp.</small>
             </div>
             <div class="field">
               <label for="phone2">PHONE 2 / LINK ZOOM</label>
@@ -554,9 +552,6 @@
               <button type="submit" class="btn btn-primary" id="submit-btn">Simpan Data</button>
               <button type="button" class="btn btn-ghost" id="reset-btn">Bersihkan Form</button>
             </div>
-            <button type="button" class="btn btn-ghost" id="clear-storage-btn">
-              Hapus Semua Data (local)
-            </button>
           </div>
         </form>
       </section>
@@ -565,32 +560,48 @@
       <section class="card">
         <div class="card-title">Worksheet Data Kandidat</div>
         <div class="card-sub">
-          Data tampil per baris seperti worksheet. Scroll ke kanan untuk lihat semua kolom.
-        </div>
-        <div class="hint" style="margin-bottom:4px;">
-          Data disimpan di <strong>localStorage</strong> browser. Jika ganti device / clear cache, data ikut hilang.
+          Data langsung diambil dari Spreadsheet. Scroll ke kanan untuk lihat semua kolom.
         </div>
 
         <!-- FILTERS & EXPORT -->
         <div class="filters">
           <div class="filters-row">
             <div class="filter-field">
-              <label for="filter-area">Filter AREA</label>
+              <label for="filter-area">AREA</label>
               <select id="filter-area">
                 <option value="">Semua AREA</option>
               </select>
             </div>
             <div class="filter-field">
-              <label for="filter-industry">Filter INDUSTRY</label>
+              <label for="filter-industry">INDUSTRY</label>
               <select id="filter-industry">
                 <option value="">Semua INDUSTRY</option>
               </select>
             </div>
             <div class="filter-field">
-              <label for="filter-status">Filter STATUS APPLICANT</label>
+              <label for="filter-status">STATUS APPLICANT</label>
               <select id="filter-status">
                 <option value="">Semua STATUS</option>
               </select>
+            </div>
+            <div class="filter-field">
+              <label for="filter-provinsi">PROVINSI MINAT</label>
+              <select id="filter-provinsi">
+                <option value="">Semua PROVINSI</option>
+              </select>
+            </div>
+            <div class="filter-field">
+              <label for="filter-kota">KOTA MINAT</label>
+              <select id="filter-kota">
+                <option value="">Semua KOTA</option>
+              </select>
+            </div>
+            <div class="filter-field">
+              <label>TANGGAL (From / To)</label>
+              <div style="display:flex;gap:4px;">
+                <input type="date" id="filter-date-from">
+                <input type="date" id="filter-date-to">
+              </div>
             </div>
             <div class="export-group">
               <label>Export Data</label>
@@ -615,16 +626,26 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "sourcingPaperRecords_v2";
+    /**************** CONFIG ****************/
+    const API_URL = 'PASTE_YOUR_WEB_APP_URL_HERE'; // <- GANTI dengan URL Web App Apps Script kamu
+    const STORAGE_KEY = null; // tidak dipakai lagi
 
-    // PROVINSI_KOTA akan di-load dari file provinsi_kota.json
     let PROVINSI_KOTA = {};
+    let records = [];
+    let editIndex = null; // index di array records
+    // Filter state
+    let filterArea = "";
+    let filterIndustry = "";
+    let filterStatus = "";
+    let filterProvinsi = "";
+    let filterKota = "";
+    let filterDateFrom = "";
+    let filterDateTo = "";
 
-    // Field utama yang ada di form
     const FORM_FIELDS = [
       "tanggal",
-      "username",
-      "password",
+      "namaPs",
+      "central",
       "area",
       "linkCv",
       "uploadOrs",
@@ -652,11 +673,10 @@
       "reasonTidakSubmit"
     ];
 
-    // Kolom tabel (termasuk CALL 1 sebagai kolom virtual WA)
     const TABLE_FIELDS = [
       { key: "tanggal",           label: "TANGGAL" },
-      { key: "username",          label: "USERNAME" },
-      { key: "password",          label: "PASSWORD" },
+      { key: "namaPs",            label: "Nama PS" },
+      { key: "central",           label: "Central" },
       { key: "area",              label: "AREA" },
       { key: "linkCv",            label: "Link CV" },
       { key: "uploadOrs",         label: "Upload ORS" },
@@ -685,28 +705,6 @@
       { key: "reasonTidakSubmit", label: "REASON TIDAK SUBMIT" }
     ];
 
-    let records = [];
-    let editIndex = null;
-
-    // Filter state
-    let filterArea = "";
-    let filterIndustry = "";
-    let filterStatus = "";
-
-    function loadRecords(){
-      try{
-        const raw = localStorage.getItem(STORAGE_KEY);
-        records = raw ? JSON.parse(raw) : [];
-        if(!Array.isArray(records)) records = [];
-      }catch(e){
-        console.error("Gagal load storage:", e);
-        records = [];
-      }
-    }
-    function saveRecords(){
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-    }
-
     function initTableHeader(){
       const tr = document.getElementById("header-row");
       tr.innerHTML = "";
@@ -727,23 +725,80 @@
       if(num.startsWith("0")){
         num = "62" + num.slice(1);
       }else if(!num.startsWith("62")){
-        // kalau bukan 0 dan bukan 62, biarkan saja (anggap sudah benar)
+        // kalau bukan 0 dan bukan 62, biarkan saja
       }
       return num;
     }
-
     function makeWaLink(phoneRaw){
       const waNum = makeWaNumber(phoneRaw);
       if(!waNum) return "";
       return "https://wa.me/" + waNum;
     }
 
-    // ========== FILTER ==========
+    /*************** API CALLS ***************/
+    async function apiList(){
+      const resp = await fetch(API_URL + '?action=list');
+      const json = await resp.json();
+      if(!json.ok) throw new Error(json.error || 'List failed');
+      return json.records || [];
+    }
+    async function apiAdd(data){
+      const resp = await fetch(API_URL, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'add', data })
+      });
+      const json = await resp.json();
+      if(!json.ok) throw new Error(json.error || 'Add failed');
+      return json.record;
+    }
+    async function apiUpdate(data){
+      const resp = await fetch(API_URL, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'update', data })
+      });
+      const json = await resp.json();
+      if(!json.ok) throw new Error(json.error || 'Update failed');
+      return json.record;
+    }
+    async function apiDelete(rowNumber){
+      const resp = await fetch(API_URL, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'delete', data:{ rowNumber } })
+      });
+      const json = await resp.json();
+      if(!json.ok) throw new Error(json.error || 'Delete failed');
+      return true;
+    }
+
+    async function loadRecordsFromApi(){
+      try{
+        records = await apiList();
+        updateFilterOptions();
+        renderTable();
+      }catch(e){
+        console.error(e);
+        alert('Gagal memuat data dari Spreadsheet: ' + e.message);
+      }
+    }
+
+    /*************** FILTER ***************/
     function getFilteredRecords(){
       return records.filter(r=>{
         if(filterArea && (r.area || "") !== filterArea) return false;
         if(filterIndustry && (r.industry || "") !== filterIndustry) return false;
         if(filterStatus && (r.statusApplicant || "") !== filterStatus) return false;
+        if(filterProvinsi && (r.provinsiMinat || "") !== filterProvinsi) return false;
+        if(filterKota && (r.kotaMinat || "") !== filterKota) return false;
+
+        if(filterDateFrom || filterDateTo){
+          // asumsikan tanggal format "YYYY-MM-DD HH:mm"
+          const t = (r.tanggal || "").slice(0,10);
+          if(filterDateFrom && t < filterDateFrom) return false;
+          if(filterDateTo && t > filterDateTo) return false;
+        }
         return true;
       });
     }
@@ -752,15 +807,21 @@
       const areaSelect     = document.getElementById("filter-area");
       const industrySelect = document.getElementById("filter-industry");
       const statusSelect   = document.getElementById("filter-status");
+      const provSelect     = document.getElementById("filter-provinsi");
+      const kotaSelect     = document.getElementById("filter-kota");
 
-      const areas = new Set();
-      const industries = new Set();
-      const statuses = new Set();
+      const areas     = new Set();
+      const industries= new Set();
+      const statuses  = new Set();
+      const provs     = new Set();
+      const kotas     = new Set();
 
       records.forEach(r=>{
         if(r.area)            areas.add(r.area);
         if(r.industry)        industries.add(r.industry);
         if(r.statusApplicant) statuses.add(r.statusApplicant);
+        if(r.provinsiMinat)   provs.add(r.provinsiMinat);
+        if(r.kotaMinat)       kotas.add(r.kotaMinat);
       });
 
       function fillSelect(select, values, currentValue, labelAll){
@@ -782,26 +843,40 @@
       fillSelect(areaSelect, areas, filterArea, "Semua AREA");
       fillSelect(industrySelect, industries, filterIndustry, "Semua INDUSTRY");
       fillSelect(statusSelect, statuses, filterStatus, "Semua STATUS");
+      fillSelect(provSelect, provs, filterProvinsi, "Semua PROVINSI");
+      fillSelect(kotaSelect, kotas, filterKota, "Semua KOTA");
     }
 
     function initFilterEvents(){
       const areaSelect     = document.getElementById("filter-area");
       const industrySelect = document.getElementById("filter-industry");
       const statusSelect   = document.getElementById("filter-status");
+      const provSelect     = document.getElementById("filter-provinsi");
+      const kotaSelect     = document.getElementById("filter-kota");
+      const dateFromInput  = document.getElementById("filter-date-from");
+      const dateToInput    = document.getElementById("filter-date-to");
 
       const handler = ()=>{
         filterArea     = areaSelect.value || "";
         filterIndustry = industrySelect.value || "";
         filterStatus   = statusSelect.value || "";
+        filterProvinsi = provSelect.value || "";
+        filterKota     = kotaSelect.value || "";
+        filterDateFrom = dateFromInput.value || "";
+        filterDateTo   = dateToInput.value || "";
         renderTable();
       };
 
       areaSelect.addEventListener("change", handler);
       industrySelect.addEventListener("change", handler);
       statusSelect.addEventListener("change", handler);
+      provSelect.addEventListener("change", handler);
+      kotaSelect.addEventListener("change", handler);
+      dateFromInput.addEventListener("change", handler);
+      dateToInput.addEventListener("change", handler);
     }
 
-    // ========== PROVINSI – KOTA ==========
+    /*************** PROVINSI – KOTA ***************/
     function populateKotaSelect(prov, selectedCity){
       const kotaSelect = document.getElementById("kotaMinat");
       kotaSelect.innerHTML = '<option value="">-- Pilih Kota --</option>';
@@ -825,7 +900,6 @@
 
       const provs = Object.keys(PROVINSI_KOTA || {}).sort();
       if(provs.length === 0){
-        // fallback teks jika JSON belum tersedia
         const opt = document.createElement("option");
         opt.value = "";
         opt.textContent = "Data provinsi belum dimuat";
@@ -841,12 +915,10 @@
         provSelect.appendChild(opt);
       });
 
-      // reset kota
       kotaSelect.innerHTML = '<option value="">Pilih provinsi terlebih dahulu</option>';
     }
 
     function loadProvinsiKotaFromJson(){
-      // File ini harus kamu buat sendiri dari sheet Master: provinsi_kota.json
       fetch("provinsi_kota.json")
         .then(res => res.json())
         .then(data=>{
@@ -860,7 +932,7 @@
         });
     }
 
-    // ========== TABEL ==========
+    /*************** TABEL ***************/
     function renderTable(){
       const tbody = document.getElementById("data-body");
       tbody.innerHTML = "";
@@ -881,6 +953,7 @@
 
       dataToRender.forEach((rec, idx)=>{
         const tr = document.createElement("tr");
+
         TABLE_FIELDS.forEach(field=>{
           const td = document.createElement("td");
           if(field.key === "call1"){
@@ -898,9 +971,6 @@
             }
           }else{
             let val = rec[field.key] ?? "";
-            if(field.key === "password" && val){
-              val = "••••••";
-            }
             td.textContent = val;
           }
           tr.appendChild(td);
@@ -914,13 +984,13 @@
         btnEdit.type = "button";
         btnEdit.className = "btn-mini btn-mini-edit";
         btnEdit.textContent = "Edit";
-        btnEdit.onclick = ()=> startEdit(idx);
+        btnEdit.onclick = ()=> startEditByRowNumber(rec.rowNumber);
 
         const btnDel = document.createElement("button");
         btnDel.type = "button";
         btnDel.className = "btn-mini btn-mini-del";
         btnDel.textContent = "Hapus";
-        btnDel.onclick = ()=> deleteRecord(idx);
+        btnDel.onclick = ()=> deleteRecord(rec.rowNumber);
 
         wrap.appendChild(btnEdit);
         wrap.appendChild(btnDel);
@@ -939,56 +1009,84 @@
           el.value = "";
         }
       });
-      // reset dropdown kota
       populateKotaSelect("", "");
       editIndex = null;
+      document.getElementById("tanggal").value = "";
       document.getElementById("mode-label").textContent = "Mode: Tambah baru";
       document.getElementById("submit-btn").textContent = "Simpan Data";
     }
 
     function fillFormFromRecord(rec){
-      FORM_FIELDS.forEach(key=>{
-        const el = document.getElementById(key);
-        if(!el) return;
-        const val = rec[key] ?? "";
-        el.value = val;
-      });
-      // pastikan provinsi-kota terisi dengan benar
-      const prov = rec.provinsiMinat || "";
-      const city = rec.kotaMinat || "";
-      document.getElementById("provinsiMinat").value = prov;
-      populateKotaSelect(prov, city);
+      document.getElementById("tanggal").value = rec.tanggal || "";
+      document.getElementById("namaPs").value = rec.namaPs || "";
+      document.getElementById("central").value = rec.central || "";
+      document.getElementById("area").value = rec.area || "";
+      document.getElementById("linkCv").value = rec.linkCv || "";
+      document.getElementById("uploadOrs").value = rec.uploadOrs || "";
+      document.getElementById("name").value = rec.name || "";
+      document.getElementById("alias").value = rec.alias || "";
+      document.getElementById("email").value = rec.email || "";
+      document.getElementById("kotaLahir").value = rec.kotaLahir || "";
+      document.getElementById("tahunLahir").value = rec.tahunLahir || "";
+      document.getElementById("gender").value = rec.gender || "";
+      document.getElementById("religion").value = rec.religion || "";
+      document.getElementById("kotaDomisili").value = rec.kotaDomisili || "";
+      document.getElementById("pendidikan").value = rec.pendidikan || "";
+      document.getElementById("sekolahUniv").value = rec.sekolahUniv || "";
+      document.getElementById("sumberSourcing").value = rec.sumberSourcing || "";
+      document.getElementById("industry").value = rec.industry || "";
+      document.getElementById("jobPosisi").value = rec.jobPosisi || "";
+      document.getElementById("provinsiMinat").value = rec.provinsiMinat || "";
+      populateKotaSelect(rec.provinsiMinat || "", rec.kotaMinat || "");
+      document.getElementById("groupAplikan").value = rec.groupAplikan || "";
+      document.getElementById("phone1").value = rec.phone1 || "";
+      document.getElementById("phone2").value = rec.phone2 || "";
+      document.getElementById("parameter").value = rec.parameter || "";
+      document.getElementById("expectedSalary").value = rec.expectedSalary || "";
+      document.getElementById("statusApplicant").value = rec.statusApplicant || "";
+      document.getElementById("reasonTidakSubmit").value = rec.reasonTidakSubmit || "";
     }
 
-    function collectFormData(isEdit){
-      const data = {};
-      FORM_FIELDS.forEach(key=>{
-        const el = document.getElementById(key);
-        if(!el) return;
-        data[key] = (el.value || "").trim();
-      });
-
-      if(!isEdit || !data.tanggal){
-        const now = new Date();
-        const yyyy = now.getFullYear();
-        const mm = String(now.getMonth()+1).padStart(2,"0");
-        const dd = String(now.getDate()).padStart(2,"0");
-        const hh = String(now.getHours()).padStart(2,"0");
-        const nn = String(now.getMinutes()).padStart(2,"0");
-        data.tanggal = `${yyyy}-${mm}-${dd} ${hh}:${nn}`;
-        const tEl = document.getElementById("tanggal");
-        if(tEl) tEl.value = data.tanggal;
-      }
-
-      data.call1 = makeWaLink(data.phone1);
+    function collectFormData(){
+      const data = {
+        namaPs:          document.getElementById("namaPs").value.trim(),
+        central:         document.getElementById("central").value.trim(),
+        area:            document.getElementById("area").value.trim(),
+        linkCv:          document.getElementById("linkCv").value.trim(),
+        uploadOrs:       document.getElementById("uploadOrs").value.trim(),
+        name:            document.getElementById("name").value.trim(),
+        alias:           document.getElementById("alias").value.trim(),
+        email:           document.getElementById("email").value.trim(),
+        kotaLahir:       document.getElementById("kotaLahir").value.trim(),
+        tahunLahir:      document.getElementById("tahunLahir").value.trim(),
+        gender:          document.getElementById("gender").value.trim(),
+        religion:        document.getElementById("religion").value.trim(),
+        kotaDomisili:    document.getElementById("kotaDomisili").value.trim(),
+        pendidikan:      document.getElementById("pendidikan").value.trim(),
+        sekolahUniv:     document.getElementById("sekolahUniv").value.trim(),
+        sumberSourcing:  document.getElementById("sumberSourcing").value.trim(),
+        industry:        document.getElementById("industry").value.trim(),
+        jobPosisi:       document.getElementById("jobPosisi").value.trim(),
+        provinsiMinat:   document.getElementById("provinsiMinat").value.trim(),
+        kotaMinat:       document.getElementById("kotaMinat").value.trim(),
+        groupAplikan:    document.getElementById("groupAplikan").value.trim(),
+        phone1:          document.getElementById("phone1").value.trim(),
+        phone2:          document.getElementById("phone2").value.trim(),
+        parameter:       document.getElementById("parameter").value.trim(),
+        expectedSalary:  document.getElementById("expectedSalary").value.trim(),
+        statusApplicant: document.getElementById("statusApplicant").value.trim(),
+        reasonTidakSubmit: document.getElementById("reasonTidakSubmit").value.trim()
+      };
       return data;
     }
 
-    function startEdit(idx){
-      const rec = records[idx];
+    function startEditByRowNumber(rowNumber){
+      const idx = records.findIndex(r=> r.rowNumber === rowNumber);
+      if(idx === -1) return;
       editIndex = idx;
+      const rec = records[idx];
       fillFormFromRecord(rec);
-      document.getElementById("mode-label").textContent = "Mode: Edit baris #" + (idx+1);
+      document.getElementById("mode-label").textContent = "Mode: Edit baris (row " + rowNumber + ")";
       document.getElementById("submit-btn").textContent = "Update Data";
       const formEl = document.getElementById("sourcing-form");
       if(formEl && formEl.scrollIntoView){
@@ -996,25 +1094,28 @@
       }
     }
 
-    function deleteRecord(idx){
-      if(!confirm("Yakin ingin menghapus baris ini?")) return;
-      records.splice(idx,1);
-      saveRecords();
-      updateFilterOptions();
-      renderTable();
-      resetForm();
+    async function deleteRecord(rowNumber){
+      if(!confirm("Yakin ingin menghapus baris ini di Spreadsheet?")) return;
+      try{
+        await apiDelete(rowNumber);
+        await loadRecordsFromApi();
+        resetForm();
+      }catch(e){
+        console.error(e);
+        alert("Gagal hapus data: " + e.message);
+      }
     }
 
-    // ========== EXPORT ==========
+    /*************** EXPORT ***************/
     function exportToCSV(){
       if(!records.length){
         alert("Tidak ada data untuk diexport.");
         return;
       }
+      const dataToExport = getFilteredRecords();
       const header = TABLE_FIELDS.map(f=>f.label);
-      const rows = records.map(rec => TABLE_FIELDS.map(f=>{
+      const rows = dataToExport.map(rec => TABLE_FIELDS.map(f=>{
         if(f.key === "call1") return makeWaLink(rec.phone1);
-        if(f.key === "password") return rec.password || "";
         return rec[f.key] ?? "";
       }));
 
@@ -1047,10 +1148,10 @@
         alert("Tidak ada data untuk diexport.");
         return;
       }
+      const dataToExport = getFilteredRecords();
       const header = TABLE_FIELDS.map(f=>f.label);
-      const rows = records.map(rec => TABLE_FIELDS.map(f=>{
+      const rows = dataToExport.map(rec => TABLE_FIELDS.map(f=>{
         if(f.key === "call1") return makeWaLink(rec.phone1);
-        if(f.key === "password") return rec.password || "";
         return rec[f.key] ?? "";
       }));
       const aoa = [header, ...rows];
@@ -1060,35 +1161,28 @@
       XLSX.writeFile(wb, "SourcingPaper.xlsx");
     }
 
-    // ========== EVENTS ==========
+    /*************** EVENTS ***************/
     function setupEvents(){
       const form = document.getElementById("sourcing-form");
-      form.addEventListener("submit", function(e){
+      form.addEventListener("submit", async function(e){
         e.preventDefault();
-        const isEdit = editIndex !== null;
-        const data = collectFormData(isEdit);
-
-        if(isEdit){
-          records[editIndex] = {...records[editIndex], ...data};
-        }else{
-          records.push(data);
+        const payload = collectFormData();
+        try{
+          if(editIndex === null){
+            await apiAdd(payload);
+          }else{
+            const rowNumber = records[editIndex].rowNumber;
+            await apiUpdate(Object.assign({}, payload, { rowNumber }));
+          }
+          await loadRecordsFromApi();
+          resetForm();
+        }catch(err){
+          console.error(err);
+          alert("Gagal menyimpan data: " + err.message);
         }
-        saveRecords();
-        updateFilterOptions();
-        renderTable();
-        resetForm();
       });
 
       document.getElementById("reset-btn").addEventListener("click", function(){
-        resetForm();
-      });
-
-      document.getElementById("clear-storage-btn").addEventListener("click", function(){
-        if(!confirm("Hapus semua data yang tersimpan di browser ini?")) return;
-        records = [];
-        saveRecords();
-        updateFilterOptions();
-        renderTable();
         resetForm();
       });
 
@@ -1118,11 +1212,9 @@
     // INIT
     (function init(){
       initTableHeader();
-      loadRecords();
       setupEvents();
-      loadProvinsiKotaFromJson(); // load provinsi-kota dari file JSON eksternal
-      updateFilterOptions();
-      renderTable();
+      loadProvinsiKotaFromJson();
+      loadRecordsFromApi();
     })();
   </script>
 </body>
