@@ -291,7 +291,7 @@
     <header>
       <h1>Sourcing Paper</h1>
       <div class="subhead">
-        Worksheet screening kandidat dalam bentuk web app (CRUD) yang terhubung langsung ke Google Spreadsheet.
+        Worksheet screening kandidat dalam bentuk web app (CRUD) yang terhubung langsung ke Google Spreadsheet (sheet BRD).
       </div>
     </header>
 
@@ -627,12 +627,12 @@
 
   <script>
     /**************** CONFIG ****************/
-    const API_URL = 'https://script.google.com/macros/s/AKfycbynrbRiBTuYusF4reQZZ00j6PQzz80db2kv6znEHhmWmtBkGQfZ1qCkrr7q6aZUX_qB/exec'; // <- GANTI dengan URL Web App Apps Script kamu
-    const STORAGE_KEY = null; // tidak dipakai lagi
+    const API_URL = 'https://script.google.com/macros/s/AKfycbyUOTlHzqFLWbHLebdqdApYyPZYP3IjOx_GApxO2NISgl4Gfv44GfuKwJQtz01XNp4K/exec'; // <-- ganti dengan URL Web App /exec kamu
 
     let PROVINSI_KOTA = {};
     let records = [];
-    let editIndex = null; // index di array records
+    let editIndex = null;
+
     // Filter state
     let filterArea = "";
     let filterIndustry = "";
@@ -725,7 +725,7 @@
       if(num.startsWith("0")){
         num = "62" + num.slice(1);
       }else if(!num.startsWith("62")){
-        // kalau bukan 0 dan bukan 62, biarkan saja
+        // biarkan saja
       }
       return num;
     }
@@ -735,38 +735,46 @@
       return "https://wa.me/" + waNum;
     }
 
-    /*************** API CALLS ***************/
+    /*************** API CALLS (form-encoded) ***************/
     async function apiList(){
       const resp = await fetch(API_URL + '?action=list');
       const json = await resp.json();
       if(!json.ok) throw new Error(json.error || 'List failed');
       return json.records || [];
     }
+
+    function buildPayloadBody(obj){
+      const encoded = encodeURIComponent(JSON.stringify(obj));
+      return 'payload=' + encoded;
+    }
+
     async function apiAdd(data){
       const resp = await fetch(API_URL, {
         method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ action:'add', data })
+        headers:{ 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8' },
+        body: buildPayloadBody({ action:'add', data })
       });
       const json = await resp.json();
       if(!json.ok) throw new Error(json.error || 'Add failed');
       return json.record;
     }
+
     async function apiUpdate(data){
       const resp = await fetch(API_URL, {
         method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ action:'update', data })
+        headers:{ 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8' },
+        body: buildPayloadBody({ action:'update', data })
       });
       const json = await resp.json();
       if(!json.ok) throw new Error(json.error || 'Update failed');
       return json.record;
     }
+
     async function apiDelete(rowNumber){
       const resp = await fetch(API_URL, {
         method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ action:'delete', data:{ rowNumber } })
+        headers:{ 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8' },
+        body: buildPayloadBody({ action:'delete', data:{ rowNumber } })
       });
       const json = await resp.json();
       if(!json.ok) throw new Error(json.error || 'Delete failed');
@@ -794,8 +802,7 @@
         if(filterKota && (r.kotaMinat || "") !== filterKota) return false;
 
         if(filterDateFrom || filterDateTo){
-          // asumsikan tanggal format "YYYY-MM-DD HH:mm"
-          const t = (r.tanggal || "").slice(0,10);
+          const t = (r.tanggal || "").toString().slice(0,10);
           if(filterDateFrom && t < filterDateFrom) return false;
           if(filterDateTo && t > filterDateTo) return false;
         }
@@ -951,7 +958,7 @@
         return;
       }
 
-      dataToRender.forEach((rec, idx)=>{
+      dataToRender.forEach((rec)=>{
         const tr = document.createElement("tr");
 
         TABLE_FIELDS.forEach(field=>{
@@ -1048,7 +1055,7 @@
     }
 
     function collectFormData(){
-      const data = {
+      return {
         namaPs:          document.getElementById("namaPs").value.trim(),
         central:         document.getElementById("central").value.trim(),
         area:            document.getElementById("area").value.trim(),
@@ -1077,7 +1084,6 @@
         statusApplicant: document.getElementById("statusApplicant").value.trim(),
         reasonTidakSubmit: document.getElementById("reasonTidakSubmit").value.trim()
       };
-      return data;
     }
 
     function startEditByRowNumber(rowNumber){
@@ -1108,11 +1114,11 @@
 
     /*************** EXPORT ***************/
     function exportToCSV(){
-      if(!records.length){
+      const dataToExport = getFilteredRecords();
+      if(!dataToExport.length){
         alert("Tidak ada data untuk diexport.");
         return;
       }
-      const dataToExport = getFilteredRecords();
       const header = TABLE_FIELDS.map(f=>f.label);
       const rows = dataToExport.map(rec => TABLE_FIELDS.map(f=>{
         if(f.key === "call1") return makeWaLink(rec.phone1);
@@ -1144,11 +1150,11 @@
     }
 
     function exportToXLSX(){
-      if(!records.length){
+      const dataToExport = getFilteredRecords();
+      if(!dataToExport.length){
         alert("Tidak ada data untuk diexport.");
         return;
       }
-      const dataToExport = getFilteredRecords();
       const header = TABLE_FIELDS.map(f=>f.label);
       const rows = dataToExport.map(rec => TABLE_FIELDS.map(f=>{
         if(f.key === "call1") return makeWaLink(rec.phone1);
